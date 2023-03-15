@@ -1,0 +1,65 @@
+{
+  "quiz": {
+    "title": "React.js Quiz",
+    "description": "Test your knowledge of React.js",
+    "questions": [
+      {
+        "question": "Who developed React.js?",
+        "answers": [
+          { "answer": "Google", "correct": false },
+          { "answer": "Facebook", "correct": true },
+          { "answer": "Apple", "correct": false }
+        ]
+      },
+      {
+        "question": "What is the main concept of React.js?",
+        "answers": [
+          {
+            "answer": "Separating the UI into individual components",
+            "correct": true
+          },
+          { "answer": "Pair programming", "correct": false },
+          { "answer": "Agile development", "correct": false }
+        ]
+      },
+      {
+        "question": "What is JSX?",
+        "answers": [
+          {
+            "answer": "A file extension for JavaScript files",
+            "correct": false
+          },
+          { "answer": "A syntax for describing components", "correct": true },
+          {
+            "answer": "An abbreviation for Java Script Extension",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "question": "What is the advantage of using a virtual DOM in React.js?",
+        "answers": [
+          {
+            "answer": "Ability to perform DOM operations faster",
+            "correct": false
+          },
+          {
+            "answer": "Efficient update of only necessary parts of the page",
+            "correct": true
+          },
+          {
+            "answer": "Compatibility with other UI libraries",
+            "correct": false
+          }
+        ]
+      },
+      {
+        "question": "Is React.js suitable for a variety of projects?",
+        "answers": [
+          { "answer": "Yes", "correct": true },
+          { "answer": "No", "correct": false }
+        ]
+      }
+    ]
+  }
+}
