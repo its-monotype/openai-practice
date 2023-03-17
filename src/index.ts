@@ -117,7 +117,7 @@ const userContent = `Parse the following text into a quiz with ${amountOfQuestio
 
     const quiz = extractQuizFromString(completion.content);
 
-    if (quiz === null) throw new Error('No quiz found');
+    if (quiz === null) throw new Error('Failed to parse quiz');
 
     console.log('🎉 Quiz:', JSON.stringify(quiz, null, 2));
   } catch (err) {
