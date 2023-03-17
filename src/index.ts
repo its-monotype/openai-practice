@@ -1,6 +1,6 @@
 import { Configuration, OpenAIApi } from 'openai';
+import { z } from 'zod';
 import dotenv from 'dotenv';
-import { isErrorWithMessage, isResponseError } from './utils';
 
 dotenv.config();
 
@@ -10,51 +10,96 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-// TODO: Implement this function, now it not working correctly
-const extractObjectFromString = (text: string) => {
-  // const regex = /{[^{}]*}/;
-  // const match = regex.exec(text);
-  // if (!match) {
-  //   throw new Error('No object found in the text');
-  // }
-  // return JSON.parse(match[0]);
+export type ResponseError = {
+  response: {
+    status: number;
+    data: any;
+  };
 };
 
-const parseInto = {
-  quiz: {
-    title: 'Title of the quiz',
-    description: 'Description of the quiz',
-    questions: [
-      {
-        question: 'Question 1',
-        answers: [
-          {
-            answer: 'Answer 1',
-            correct: true,
-          },
-          {
-            answer: 'Answer 2',
-            correct: false,
-          },
-          {
-            answer: 'Answer 3',
-            correct: false,
-          },
-        ],
-      },
-    ],
-  },
+export type ErrorWithMessage = {
+  message: string;
 };
 
-const textToParse =
-  'React.js (or simply React) is a JavaScript library for creating user interfaces (UIs). It was developed by Facebook and released in 2013. React is based on the idea of separating the user interface into individual components that can be reused and put together to create more complex applications. React uses the JSX (JavaScript Language Extension) syntax, which allows developers to use an HTML-like syntax to describe components and how they interact with each other. React also uses a virtual DOM (Document Object Model), which allows it to efficiently update only the necessary parts of the page, minimizing the number of DOM operations. This makes React faster and more performant than other UI libraries. React also allows you to use many third-party libraries and tools, making it very flexible and suitable for a variety of projects.';
+export const isResponseError = (error: any): error is ResponseError => {
+  return error.response !== undefined;
+};
 
-const sysContent =
-  'You are given a text and asked to parse it into a quiz witch will used by a student to learn that topic. Parse the text into a quiz, try hard to make it as accurate as possible.';
+export const isErrorWithMessage = (error: any): error is ErrorWithMessage => {
+  return error.message !== undefined;
+};
 
-const userContent = `Parse the following text into a quiz using the following JSON format: ${JSON.stringify(
+export const quizSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  questions: z.array(
+    z.object({
+      question: z.string(),
+      answers: z.array(
+        z.object({
+          answer: z.string(),
+          correct: z.boolean(),
+        })
+      ),
+    })
+  ),
+});
+
+type Quiz = z.infer<typeof quizSchema>;
+
+export const isQuiz = (quiz: any): quiz is Quiz =>
+  quizSchema.safeParse(quiz).success;
+
+const extractQuizFromString = (text: string): Quiz | null => {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  const objectString = text.slice(start, end + 1);
+
+  try {
+    const parsedObject = JSON.parse(objectString);
+
+    if (!isQuiz(parsedObject)) return null;
+
+    return parsedObject;
+  } catch (err) {
+    console.error('Error parsing JSON', err);
+    return null;
+  }
+};
+
+const parseInto: Quiz = {
+  title: '',
+  description: '',
+  questions: [
+    {
+      question: '',
+      answers: [
+        {
+          answer: '',
+          correct: true,
+        },
+        {
+          answer: '',
+          correct: false,
+        },
+      ],
+    },
+  ],
+};
+
+const amountOfQuestions = 5;
+
+const isMultiChoice = true;
+
+const quizType = isMultiChoice ? 'multiple-choice' : 'single-choice';
+
+const textToParse = `React.js (or simply React) is a JavaScript library for creating user interfaces (UIs). It was developed by Facebook and released in 2013. React is based on the idea of separating the user interface into individual components that can be reused and put together to create more complex applications. React uses the JSX (JavaScript Language Extension) syntax, which allows developers to use an HTML-like syntax to describe components and how they interact with each other. React also uses a virtual DOM (Document Object Model), which allows it to efficiently update only the necessary parts of the page, minimizing the number of DOM operations. This makes React faster and more performant than other UI libraries. React also allows you to use many third-party libraries and tools, making it very flexible and suitable for a variety of projects.`;
+
+const sysContent = `You need to generate a quiz based on the following text. The quiz should consist of ${amountOfQuestions} ${quizType} questions. You can use any relevant information from the text to generate the questions, but avoid questions that are too similar or too easy.`;
+
+const userContent = `Parse the following text into a quiz with ${amountOfQuestions} ${quizType} questions. Use the following JSON format: ${JSON.stringify(
   parseInto
-)}. \n\nTEXT TO PARSE: ${textToParse}`;
+)}.\n\nTEXT TO PARSE: ${textToParse}`;
 
 (async () => {
   try {
@@ -68,19 +113,21 @@ const userContent = `Parse the following text into a quiz using the following JS
 
     const completion = completionRes.data.choices[0].message;
 
-    if (completion === undefined) {
-      throw new Error('No completion found');
-    }
+    if (completion === undefined) throw new Error('No completion found');
 
-    console.log(completion.content);
-  } catch (error) {
-    if (isResponseError(error)) {
-      console.log(error.response.status);
-      console.log(error.response.data);
-    } else if (isErrorWithMessage(error)) {
-      console.log(error.message);
+    const quiz = extractQuizFromString(completion.content);
+
+    if (quiz === null) throw new Error('No quiz found');
+
+    console.log('🎉 Quiz:', JSON.stringify(quiz, null, 2));
+  } catch (err) {
+    if (isResponseError(err)) {
+      console.log(err.response.status);
+      console.log(err.response.data);
+    } else if (isErrorWithMessage(err)) {
+      console.log(err.message);
     } else {
-      console.error(error);
+      console.error(err);
     }
   }
 })();
