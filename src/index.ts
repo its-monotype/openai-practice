@@ -4,11 +4,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const configuration = new Configuration({
+const config = new Configuration({
   apiKey: process.env['API_KEY'],
 });
 
-const openai = new OpenAIApi(configuration);
+const openai = new OpenAIApi(config);
 
 export type ResponseError = {
   response: {
