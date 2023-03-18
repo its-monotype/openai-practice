@@ -1,71 +1,15 @@
-import { Configuration, OpenAIApi } from 'openai';
-import { z } from 'zod';
 import dotenv from 'dotenv';
+import { Configuration, OpenAIApi } from 'openai';
+import { isErrorWithMessage, isResponseError, Quiz } from './types';
+import { extractQuizFromString } from './utils';
 
 dotenv.config();
 
-const config = new Configuration({
+const openaiConfig = new Configuration({
   apiKey: process.env['API_KEY'],
 });
 
-const openai = new OpenAIApi(config);
-
-export type ResponseError = {
-  response: {
-    status: number;
-    data: any;
-  };
-};
-
-export type ErrorWithMessage = {
-  message: string;
-};
-
-export const isResponseError = (error: any): error is ResponseError => {
-  return error.response !== undefined;
-};
-
-export const isErrorWithMessage = (error: any): error is ErrorWithMessage => {
-  return error.message !== undefined;
-};
-
-export const quizSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  questions: z.array(
-    z.object({
-      question: z.string(),
-      answers: z.array(
-        z.object({
-          answer: z.string(),
-          correct: z.boolean(),
-        })
-      ),
-    })
-  ),
-});
-
-type Quiz = z.infer<typeof quizSchema>;
-
-export const isQuiz = (quiz: any): quiz is Quiz =>
-  quizSchema.safeParse(quiz).success;
-
-const extractQuizFromString = (text: string): Quiz | null => {
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  const objectString = text.slice(start, end + 1);
-
-  try {
-    const parsedObject = JSON.parse(objectString);
-
-    if (!isQuiz(parsedObject)) return null;
-
-    return parsedObject;
-  } catch (err) {
-    console.error('Error parsing JSON', err);
-    return null;
-  }
-};
+export const openai = new OpenAIApi(openaiConfig);
 
 const parseInto: Quiz = {
   title: '',
