@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { Configuration, OpenAIApi } from 'openai';
 import { isErrorWithMessage, isResponseError, Quiz } from './types';
-import { extractQuizFromString } from './utils';
+import { parseQuizFromText } from './utils';
 
 dotenv.config();
 
@@ -59,7 +59,7 @@ const userContent = `Parse the following text into a quiz with ${amountOfQuestio
 
     if (completion === undefined) throw new Error('No completion found');
 
-    const quiz = extractQuizFromString(completion.content);
+    const quiz = parseQuizFromText(completion.content);
 
     if (quiz === null) throw new Error('Failed to parse quiz');
 

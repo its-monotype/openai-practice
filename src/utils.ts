@@ -1,6 +1,6 @@
 import { isQuiz, Quiz } from './types';
 
-export const extractQuizFromString = (text: string): Quiz | null => {
+export const parseQuizFromText = (text: string): Quiz | null => {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   const objectString = text.slice(start, end + 1);
